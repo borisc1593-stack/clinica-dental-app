@@ -932,10 +932,16 @@ function diasSinRespaldo(){
 function avisoRespaldo(){
   if (ES_DEMO) return;
   if (pacientes.length === 0 && citas.length === 0) return;
-  var snooze = parseInt(localStorage.getItem("dc_backup_snooze") || "0");
-  if (Date.now() - snooze < 86400000) return; // pospuesto hoy
   var d = diasSinRespaldo();
   if (d < RESPALDO_DIAS) return;
+  // Respaldo automático: descarga solo el archivo y avisa
+  try {
+    exportar();
+    toast("🛟 Respaldo automático descargado en tu carpeta de Descargas");
+    return;
+  } catch(e) {}
+  var snooze = parseInt(localStorage.getItem("dc_backup_snooze") || "0");
+  if (Date.now() - snooze < 86400000) return; // pospuesto hoy
   var nunca = !localStorage.getItem("dc_last_backup");
   var div = document.createElement("div");
   div.id = "aviso-respaldo";
