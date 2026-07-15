@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d1520">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Clínica">
+<title>Clínica Dental</title>
+<style>
+:root{
+  --bg:#0d1520; --surface:#141f2e; --surface2:#1b2a3d; --border:#24354b;
+  --teal:#2dd4bf; --teal-dark:#0f9488; --blue:#60a5fa;
+  --txt:#e8eef5; --muted:#8ba3bc;
+  --green:#34d399; --amber:#fbbf24; --red:#f87171; --purple:#c084fc;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;font-size:15px;min-height:100vh}
+h1,h2,h3{font-weight:600}
+input,select,textarea,button{font-family:inherit;font-size:15px}
+input,select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--txt);outline:none;transition:border .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--teal)}
+input[type=date],input[type=time]{color-scheme:dark}
+label{display:block;font-size:12.5px;color:var(--muted);margin:12px 0 5px;text-transform:uppercase;letter-spacing:.4px}
+button{cursor:pointer;border:none;border-radius:10px}
+::placeholder{color:#5a7089}
+
+.btn{background:var(--teal-dark);color:#fff;padding:12px 18px;font-weight:600;width:100%;margin-top:14px;transition:opacity .15s}
+.btn:active{opacity:.8}
+.btn-sm{padding:8px 13px;font-size:13px;width:auto;margin:0;font-weight:600;border-radius:9px}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--txt)}
+.btn-wa{background:#128c5e;color:#fff}
+.btn-red{background:#7f2d2d;color:#fecaca}
+.btn-ghost{background:var(--surface2);color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+.card-tap{cursor:pointer;transition:border .15s}
+.card-tap:active{border-color:var(--teal)}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+.chip{display:inline-block;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:99px;letter-spacing:.3px}
+.chip-pend{background:#3d3417;color:var(--amber)}
+.chip-conf{background:#12303f;color:var(--blue)}
+.chip-aten{background:#123527;color:var(--green)}
+.chip-canc{background:#3d1d1d;color:var(--red)}
+.chip-saldo{background:#3d1d1d;color:var(--red)}
+.chip-pagado{background:#123527;color:var(--green)}
+.empty{text-align:center;color:var(--muted);padding:44px 20px;font-size:14px}
+.empty .big{font-size:42px;display:block;margin-bottom:10px;opacity:.6}
+.divider{height:1px;background:var(--border);margin:14px 0}
+.meta{font-size:12.5px;color:var(--muted)}
+.money{font-weight:700;font-variant-numeric:tabular-nums}
+
+/* ═══ PANTALLA DE BLOQUEO ═══ */
+#lock{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+.lock-logo{width:88px;height:88px;background:linear-gradient(135deg,var(--teal),var(--blue));border-radius:26px;display:flex;align-items:center;justify-content:center;font-size:46px;margin-bottom:18px;box-shadow:0 10px 34px rgba(45,212,191,.28)}
+#lock h1{font-size:22px}
+#lock .meta{margin:6px 0 4px}
+.pin-dots{display:flex;gap:14px;justify-content:center;margin:22px 0}
+.pin-dot{width:15px;height:15px;border-radius:50%;border:2px solid var(--border)}
+.pin-dot.full{background:var(--teal);border-color:var(--teal)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:270px}
+.pin-key{background:var(--surface);border:1px solid var(--border);color:var(--txt);font-size:21px;font-weight:600;padding:15px 0;border-radius:14px}
+.pin-key:active{background:var(--teal-dark)}
+
+/* ═══ APP ═══ */
+#app{display:none;padding-bottom:80px}
+header{background:linear-gradient(135deg,#10202f,#0f2a33);border-bottom:1px solid var(--border);padding:16px 18px;position:sticky;top:0;z-index:50}
+.hdr-row{display:flex;align-items:center;gap:12px;max-width:960px;margin:0 auto}
+.hdr-logo{width:42px;height:42px;background:linear-gradient(135deg,var(--teal),var(--blue));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.hdr-info h1{font-size:17px;line-height:1.2}
+.hdr-info p{font-size:12.5px;color:var(--muted)}
+.hdr-stats{margin-left:auto;text-align:right}
+.hdr-stats .num{font-size:17px;font-weight:700;color:var(--teal)}
+.hdr-stats .lbl{font-size:11px;color:var(--muted)}
+nav{position:fixed;bottom:0;left:0;right:0;background:#101a28;border-top:1px solid var(--border);display:none;z-index:60;padding-bottom:env(safe-area-inset-bottom)}
+.nav-btn{flex:1;background:none;color:var(--muted);padding:10px 4px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;border-radius:0}
+.nav-btn .ico{font-size:21px;line-height:1}
+.nav-btn.active{color:var(--teal)}
+.page{display:none;max-width:960px;margin:0 auto;padding:18px 16px 30px}
+.page.active{display:block}
+.page-title{font-size:19px;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--muted);margin-bottom:16px}
+.search-bar{margin-bottom:14px;display:flex;gap:10px}
+.fab-add{position:fixed;bottom:86px;right:18px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal-dark));color:#04211d;font-size:30px;box-shadow:0 6px 20px rgba(45,212,191,.35);z-index:55;display:none;align-items:center;justify-content:center;line-height:1}
+.day-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:12px;scrollbar-width:none}
+.day-strip::-webkit-scrollbar{display:none}
+.day-pill{flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:9px 14px;text-align:center;cursor:pointer;min-width:62px}
+.day-pill .dw{font-size:11px;color:var(--muted);text-transform:uppercase}
+.day-pill .dn{font-size:17px;font-weight:700;margin-top:2px}
+.day-pill.sel{background:var(--teal-dark);border-color:var(--teal)}
+.day-pill.sel .dw{color:#c7f5ee}
+.cita-hora{font-size:16px;font-weight:700;color:var(--teal);min-width:56px}
+.cita-line{display:flex;gap:12px;align-items:flex-start}
+
+/* ODONTOGRAMA */
+.odont-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px 8px;margin-top:10px}
+.odont-arch{display:flex;justify-content:center;gap:3px;margin:4px 0}
+.tooth{width:9.5%;max-width:34px;aspect-ratio:1;border-radius:7px;border:1.5px solid var(--border);background:#223144;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--muted);cursor:pointer;transition:transform .1s}
+.tooth:active{transform:scale(.9)}
+.tooth.st-sano{background:#1b3a33;border-color:var(--green);color:var(--green)}
+.tooth.st-caries{background:#3d1d1d;border-color:var(--red);color:var(--red)}
+.tooth.st-rest{background:#12303f;border-color:var(--blue);color:var(--blue)}
+.tooth.st-endo{background:#33203d;border-color:var(--purple);color:var(--purple)}
+.tooth.st-corona{background:#3d3417;border-color:var(--amber);color:var(--amber)}
+.tooth.st-ausente{background:#0d1520;border-color:#2a3648;color:#3d4d61;text-decoration:line-through}
+.odont-mid{text-align:center;font-size:10px;color:#3d5065;letter-spacing:2px;margin:2px 0}
+.odont-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center}
+.leg{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px}
+.leg i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+/* MODAL */
+.modal{display:none;position:fixed;inset:0;background:rgba(5,10,18,.78);z-index:100;align-items:flex-end;justify-content:center}
+.modal.open{display:flex}
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:20px 18px 26px;width:100%;max-width:600px;max-height:88vh;overflow-y:auto}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.modal-head h3{font-size:17px}
+.modal-x{background:var(--surface2);color:var(--muted);width:32px;height:32px;border-radius:50%;font-size:16px}
+@media(min-width:640px){.modal{align-items:center}.modal-box{border-radius:20px}}
+.tab-row{display:flex;gap:6px;margin:14px 0}
+.tab-btn{flex:1;background:var(--surface2);color:var(--muted);padding:9px 2px;font-size:12px;font-weight:600;border-radius:10px}
+.tab-btn.on{background:var(--teal-dark);color:#fff}
+.subtab{display:none}
+.subtab.on{display:block}
+.evo-item{border-left:2px solid var(--teal-dark);padding:2px 0 12px 12px;margin-left:4px}
+.evo-item .f{font-size:11.5px;color:var(--muted)}
+.pay-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:14px}
+.pay-row:last-child{border-bottom:none}
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--green);color:#04150d;padding:11px 20px;border-radius:12px;font-weight:600;font-size:14px;opacity:0;transition:opacity .25s;z-index:200;pointer-events:none;max-width:90vw;text-align:center}
+
+/* ═══ MODO ESCRITORIO (computadora) ═══ */
+@media(min-width:900px){
+  body{padding-bottom:0}
+  #app{padding-bottom:30px;padding-left:222px}
+  /* Menú lateral en vez de barra inferior */
+  nav{top:0;bottom:0;left:0;right:auto;width:222px;flex-direction:column;justify-content:flex-start;border-top:none;border-right:1px solid var(--border);padding:86px 10px 10px;gap:4px}
+  .nav-btn{flex:0 0 auto;flex-direction:row;justify-content:flex-start;gap:13px;padding:13px 16px;font-size:14.5px;border-radius:12px;width:100%}
+  .nav-btn .ico{font-size:20px}
+  .nav-btn.active{background:var(--surface2)}
+  header{padding-left:24px}
+  .hdr-row{margin:0;max-width:none}
+  .page{max-width:1080px;margin:0;padding:24px 28px 40px}
+  /* Listas a dos columnas */
+  #lista-pacientes,#lista-pagos{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+  #lista-pacientes .card,#lista-pagos .card{margin-bottom:0}
+  #lista-citas{max-width:720px}
+  .fab-add{bottom:30px;right:30px}
+  .search-bar{max-width:480px}
+  .modal-box{max-width:680px}
+  .tooth{max-width:40px;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ PANTALLA DE BLOQUEO ═══════════ -->
+<div id="lock">
+  <div class="lock-logo">🦷</div>
+  <h1 id="lock-nombre">Clínica Dental</h1>
+  <p class="meta">Ingresa el PIN para acceder</p>
+  <div class="pin-dots" id="pin-dots"></div>
+  <div class="pin-pad">
+    <button class="pin-key" onclick="pinKey('1')">1</button><button class="pin-key" onclick="pinKey('2')">2</button><button class="pin-key" onclick="pinKey('3')">3</button>
+    <button class="pin-key" onclick="pinKey('4')">4</button><button class="pin-key" onclick="pinKey('5')">5</button><button class="pin-key" onclick="pinKey('6')">6</button>
+    <button class="pin-key" onclick="pinKey('7')">7</button><button class="pin-key" onclick="pinKey('8')">8</button><button class="pin-key" onclick="pinKey('9')">9</button>
+    <button class="pin-key" style="background:none;border:none"></button><button class="pin-key" onclick="pinKey('0')">0</button><button class="pin-key" onclick="pinKey('del')">⌫</button>
+  </div>
+  <p class="meta" style="margin-top:20px;opacity:.6">PIN inicial: 1234 · cámbialo en Ajustes</p>
+</div>
+
+<!-- ═══════════ APP ═══════════ -->
+<div id="app">
+<header>
+  <div class="hdr-row">
+    <div class="hdr-logo">🦷</div>
+    <div class="hdr-info">
+      <h1 id="hdr-nombre">Clínica Dental</h1>
+      <p id="hdr-doc"></p>
+    </div>
+    <div class="hdr-stats">
+      <div class="num" id="hdr-hoy">0</div>
+      <div class="lbl">citas hoy</div>
+    </div>
+  </div>
+</header>
+
+<div class="page active" id="page-agenda">
+  <h2 class="page-title">Agenda de citas</h2>
+  <p class="page-sub" id="agenda-sub"></p>
+  <div class="day-strip" id="day-strip"></div>
+  <div id="lista-citas"></div>
+</div>
+
+<div class="page" id="page-pacientes">
+  <h2 class="page-title">Pacientes</h2>
+  <p class="page-sub" id="pac-count"></p>
+  <div class="search-bar">
+    <input type="text" id="buscar-pac" placeholder="🔍 Buscar por nombre o cédula..." oninput="renderPacientes()">
+  </div>
+  <div id="lista-pacientes"></div>
+</div>
+
+<div class="page" id="page-pagos">
+  <h2 class="page-title">Tratamientos y pagos</h2>
+  <p class="page-sub">Saldos pendientes de todos los pacientes</p>
+  <div class="card" style="display:flex;gap:0;text-align:center;padding:14px 6px">
+    <div style="flex:1"><div class="money" style="font-size:19px;color:var(--green)" id="tot-cobrado">$0</div><div class="meta">Cobrado</div></div>
+    <div style="flex:1;border-left:1px solid var(--border);border-right:1px solid var(--border)"><div class="money" style="font-size:19px;color:var(--red)" id="tot-pendiente">$0</div><div class="meta">Por cobrar</div></div>
+    <div style="flex:1"><div class="money" style="font-size:19px" id="tot-tratamientos">0</div><div class="meta">Tratam. activos</div></div>
+  </div>
+  <div id="lista-pagos"></div>
+</div>
+
+<div class="page" id="page-ajustes">
+  <h2 class="page-title">Ajustes</h2>
+  <p class="page-sub">Datos de la clínica y respaldo</p>
+  <div class="card">
+    <label>Nombre de la clínica</label>
+    <input type="text" id="cfg-nombre" placeholder="Clínica Dental Sonrisa">
+    <label>Nombre del doctor/a</label>
+    <input type="text" id="cfg-doctor" placeholder="Dra. María Pérez">
+    <label>Registro profesional / matrícula (para el membrete)</label>
+    <input type="text" id="cfg-reg" placeholder="MSP 12345">
+    <label>Dirección del consultorio (para el membrete)</label>
+    <input type="text" id="cfg-dir" placeholder="Cdla. 1ero de Mayo, Portoviejo">
+    <label>Teléfono del consultorio (para el membrete)</label>
+    <input type="tel" id="cfg-fono-cl" placeholder="0994 342 422">
+    <label>PIN de acceso (4 dígitos)</label>
+    <input type="tel" id="cfg-pin" maxlength="4" inputmode="numeric" placeholder="1234">
+    <button class="btn" onclick="guardarCfg()">💾 Guardar</button>
+  </div>
+  <div class="card">
+    <h3 style="font-size:15px;margin-bottom:4px">Respaldo de información</h3>
+    <p class="meta" style="margin-bottom:12px">Los datos se guardan solo en este dispositivo. Exporta un respaldo cada cierto tiempo.</p>
+    <div class="row">
+      <button class="btn-sm btn-outline" style="flex:1;padding:11px" onclick="exportar()">⬇️ Exportar respaldo</button>
+      <button class="btn-sm btn-outline" style="flex:1;padding:11px" onclick="document.getElementById('file-imp').click()">⬆️ Importar</button>
+    </div>
+    <input type="file" id="file-imp" accept=".json" style="display:none" onchange="importar(this)">
+  </div>
+  <div class="card">
+    <button class="btn-sm btn-ghost" style="width:100%;padding:11px;margin-bottom:10px" onclick="bloquear()">🔒 Bloquear app</button>
+    <button class="btn-sm btn-red" style="width:100%;padding:11px" onclick="if(confirm('¿Borrar TODOS los datos de la app? Esta acción no se puede deshacer.')){localStorage.clear();location.reload()}">🗑️ Restablecer app desde cero</button>
+  </div>
+</div>
+
+<button class="fab-add" id="fab" onclick="fabAction()">+</button>
+
+<nav id="navbar">
+  <button class="nav-btn active" id="nav-agenda" onclick="showPage('agenda')"><span class="ico">📅</span>Agenda</button>
+  <button class="nav-btn" id="nav-pacientes" onclick="showPage('pacientes')"><span class="ico">🧑‍⚕️</span>Pacientes</button>
+  <button class="nav-btn" id="nav-pagos" onclick="showPage('pagos')"><span class="ico">💵</span>Pagos</button>
+  <button class="nav-btn" id="nav-ajustes" onclick="showPage('ajustes')"><span class="ico">⚙️</span>Ajustes</button>
+</nav>
+</div>
+
+<!-- ══ MODAL NUEVA CITA ══ -->
+<div class="modal" id="m-cita">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Nueva cita</h3><button class="modal-x" onclick="closeM('m-cita')">✕</button></div>
+    <label>Paciente</label>
+    <select id="c-paciente"></select>
+    <div class="row">
+      <div><label>Fecha</label><input type="date" id="c-fecha"></div>
+      <div><label>Hora</label><input type="time" id="c-hora"></div>
+    </div>
+    <label>Motivo</label>
+    <input type="text" id="c-motivo" placeholder="Limpieza, control, extracción...">
+    <button class="btn" onclick="guardarCita()">💾 Guardar cita</button>
+  </div>
+</div>
+
+<!-- ══ MODAL NUEVO PACIENTE ══ -->
+<div class="modal" id="m-pac">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="m-pac-title">Nuevo paciente</h3><button class="modal-x" onclick="closeM('m-pac')">✕</button></div>
+    <label>Nombre completo *</label>
+    <input type="text" id="p-nombre" placeholder="Juan Andrade">
+    <div class="row">
+      <div><label>Cédula</label><input type="text" id="p-cedula" placeholder="1712345678"></div>
+      <div><label>Fecha de nacimiento</label><input type="date" id="p-nac"></div>
+    </div>
+    <label>Celular (WhatsApp, con código país sin +)</label>
+    <input type="tel" id="p-fono" placeholder="593991234567">
+    <label>Alergias</label>
+    <input type="text" id="p-alergias" placeholder="Penicilina, látex... (o ninguna)">
+    <label>Antecedentes médicos</label>
+    <textarea id="p-antecedentes" rows="2" placeholder="Diabetes, hipertensión, embarazo..."></textarea>
+    <button class="btn" onclick="guardarPaciente()">💾 Guardar paciente</button>
+  </div>
+</div>
+
+<!-- ══ MODAL DETALLE PACIENTE ══ -->
+<div class="modal" id="m-det">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="d-nombre">Paciente</h3><button class="modal-x" onclick="closeM('m-det')">✕</button></div>
+    <p class="meta" id="d-datos"></p>
+    <p class="meta" id="d-medico" style="margin-top:4px"></p>
+    <div class="row" style="margin-top:12px">
+      <button class="btn-sm btn-wa" style="flex:1;padding:10px" id="d-wa" onclick="waPaciente()">💬 WhatsApp</button>
+      <button class="btn-sm btn-ghost" style="flex:1;padding:10px" onclick="editarPaciente()">✏️ Editar</button>
+      <button class="btn-sm btn-red" style="padding:10px 14px" onclick="borrarPaciente()">🗑️</button>
+    </div>
+    <div class="tab-row">
+      <button class="tab-btn on" id="tab-odont" onclick="showTab('odont')">🦷 Dientes</button>
+      <button class="tab-btn" id="tab-evo" onclick="showTab('evo')">📋 Notas</button>
+      <button class="tab-btn" id="tab-receta" onclick="showTab('receta')">💊 Recetas</button>
+      <button class="tab-btn" id="tab-trat" onclick="showTab('trat')">💵 Pagos</button>
+    </div>
+
+    <div class="subtab on" id="sub-odont">
+      <p class="meta">Toca un diente para cambiar su estado (numeración FDI adulto).</p>
+      <div class="odont-wrap">
+        <div class="odont-arch" id="arch-sup-d"></div>
+        <div class="odont-mid">SUPERIOR · 18 ─ 11 | 21 ─ 28</div>
+        <div class="divider" style="margin:8px 0"></div>
+        <div class="odont-mid">INFERIOR · 48 ─ 41 | 31 ─ 38</div>
+        <div class="odont-arch" id="arch-inf-d"></div>
+        <div class="odont-legend">
+          <span class="leg"><i style="background:var(--green)"></i>Sano</span>
+          <span class="leg"><i style="background:var(--red)"></i>Caries</span>
+          <span class="leg"><i style="background:var(--blue)"></i>Restaurado</span>
+          <span class="leg"><i style="background:var(--purple)"></i>Endodoncia</span>
+          <span class="leg"><i style="background:var(--amber)"></i>Corona</span>
+          <span class="leg"><i style="background:#3d4d61"></i>Ausente</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="subtab" id="sub-evo">
+      <textarea id="evo-txt" rows="2" placeholder="Nota de evolución: procedimiento realizado, observaciones..."></textarea>
+      <button class="btn" style="margin-top:10px" onclick="agregarEvo()">➕ Agregar nota</button>
+      <div class="divider"></div>
+      <div id="lista-evo"></div>
+    </div>
+
+    <div class="subtab" id="sub-receta">
+      <label>Medicamentos (uno por línea)</label>
+      <textarea id="rec-meds" rows="3" placeholder="Amoxicilina 500mg — 1 cápsula cada 8 horas por 7 días&#10;Ibuprofeno 400mg — 1 tableta cada 8 horas si hay dolor"></textarea>
+      <label>Indicaciones</label>
+      <textarea id="rec-indic" rows="2" placeholder="Dieta blanda 48h, no enjuagar con fuerza, aplicar frío local..."></textarea>
+      <button class="btn" onclick="guardarReceta()">💾 Guardar receta</button>
+      <div class="divider"></div>
+      <div id="lista-recetas"></div>
+    </div>
+
+    <div class="subtab" id="sub-trat">
+      <button class="btn" style="margin-top:4px" onclick="openM('m-trat')">➕ Nuevo tratamiento</button>
+      <div id="lista-trat-pac" style="margin-top:14px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL NUEVO TRATAMIENTO ══ -->
+<div class="modal" id="m-trat">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Nuevo tratamiento</h3><button class="modal-x" onclick="closeM('m-trat')">✕</button></div>
+    <label>Descripción</label>
+    <input type="text" id="t-desc" placeholder="Ortodoncia, corona 26, limpieza...">
+    <div class="row">
+      <div><label>Costo total ($)</label><input type="number" id="t-costo" placeholder="350" step="0.01" inputmode="decimal"></div>
+      <div><label>Abono inicial ($)</label><input type="number" id="t-abono" placeholder="0" step="0.01" inputmode="decimal"></div>
+    </div>
+    <button class="btn" onclick="guardarTrat()">💾 Guardar tratamiento</button>
+  </div>
+</div>
+
+<!-- ══ MODAL ABONO ══ -->
+<div class="modal" id="m-abono">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Registrar abono</h3><button class="modal-x" onclick="closeM('m-abono')">✕</button></div>
+    <p class="meta" id="ab-info"></p>
+    <label>Monto del abono ($)</label>
+    <input type="number" id="ab-monto" step="0.01" inputmode="decimal" placeholder="50">
+    <button class="btn" onclick="guardarAbono()">💾 Registrar abono</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════ DATOS ══════════
+var pacientes=JSON.parse(localStorage.getItem("dc_pacientes")||"[]");
+var citas=JSON.parse(localStorage.getItem("dc_citas")||"[]");
+var trats=JSON.parse(localStorage.getItem("dc_trats")||"[]");
+var cfg=Object.assign({nombre:"Clínica Dental",doctor:"",pin:"1234",reg:"",dir:"",fonoCl:""},JSON.parse(localStorage.getItem("dc_cfg")||"{}"));
+var fechaSel=hoyISO();
+var pacSel=null, editPacId=null, tratAbonoId=null, pinBuf="";
+
+function save(){
+  localStorage.setItem("dc_pacientes",JSON.stringify(pacientes));
+  localStorage.setItem("dc_citas",JSON.stringify(citas));
+  localStorage.setItem("dc_trats",JSON.stringify(trats));
+  localStorage.setItem("dc_cfg",JSON.stringify(cfg));
+}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function hoyISO(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function fmt$(n){return "$"+(n||0).toFixed(2);}
+function esc(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function nombrePac(id){var p=pacientes.find(function(x){return x.id===id;});return p?p.nombre:"(paciente eliminado)";}
+function toast(msg,color){
+  var t=document.getElementById("toast");
+  t.textContent=msg;t.style.background=color||"var(--green)";t.style.opacity="1";
+  setTimeout(function(){t.style.opacity="0";},2400);
+}
+var DIAS=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+var MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+function fechaBonita(iso){
+  var p=iso.split("-");var d=new Date(p[0],p[1]-1,p[2]);
+  return DIAS[d.getDay()]+" "+d.getDate()+" de "+MESES[d.getMonth()];
+}
+
+// ══════════ BLOQUEO / PIN ══════════
+function renderPin(){
+  var box=document.getElementById("pin-dots");box.innerHTML="";
+  for(var i=0;i<4;i++){
+    var d=document.createElement("div");
+    d.className="pin-dot"+(i<pinBuf.length?" full":"");
+    box.appendChild(d);
+  }
+}
+function pinKey(k){
+  if(k==="del"){pinBuf=pinBuf.slice(0,-1);renderPin();return;}
+  if(pinBuf.length>=4)return;
+  pinBuf+=k;renderPin();
+  if(pinBuf.length===4){
+    if(pinBuf===cfg.pin){
+      localStorage.setItem("dc_open","1");
+      desbloquear();
+    }else{
+      pinBuf="";renderPin();
+      toast("⚠️ PIN incorrecto","var(--red)");
+    }
+  }
+}
+function desbloquear(){
+  document.getElementById("lock").style.display="none";
+  document.getElementById("app").style.display="block";
+  document.getElementById("navbar").style.display="flex";
+  updateHeader();showPage("agenda");
+}
+function bloquear(){
+  localStorage.removeItem("dc_open");
+  location.reload();
+}
+
+// ══════════ NAVEGACIÓN ══════════
+var pagActual="agenda";
+function showPage(p){
+  pagActual=p;
+  document.querySelectorAll(".page").forEach(function(x){x.classList.remove("active");});
+  document.querySelectorAll(".nav-btn").forEach(function(x){x.classList.remove("active");});
+  document.getElementById("page-"+p).classList.add("active");
+  document.getElementById("nav-"+p).classList.add("active");
+  document.getElementById("fab").style.display=(p==="agenda"||p==="pacientes")?"flex":"none";
+  if(p==="agenda")renderAgenda();
+  if(p==="pacientes")renderPacientes();
+  if(p==="pagos")renderPagos();
+  if(p==="ajustes")loadCfg();
+}
+function fabAction(){
+  if(pagActual==="agenda"){abrirNuevaCita();}
+  else if(pagActual==="pacientes"){abrirNuevoPaciente();}
+}
+function openM(id){document.getElementById(id).classList.add("open");}
+function closeM(id){document.getElementById(id).classList.remove("open");}
+document.querySelectorAll(".modal").forEach(function(m){
+  m.addEventListener("click",function(e){if(e.target===m)m.classList.remove("open");});
+});
+
+function updateHeader(){
+  document.getElementById("hdr-nombre").textContent=cfg.nombre;
+  document.getElementById("lock-nombre").textContent=cfg.nombre;
+  document.getElementById("hdr-doc").textContent=cfg.doctor||"Configura tus datos en Ajustes";
+  var hoy=hoyISO();
+  var n=citas.filter(function(c){return c.fecha===hoy&&c.estado!=="cancelada";}).length;
+  document.getElementById("hdr-hoy").textContent=n;
+}
+
+// ══════════ AGENDA ══════════
+function renderDayStrip(){
+  var strip=document.getElementById("day-strip");strip.innerHTML="";
+  var base=new Date();base.setHours(12,0,0,0);
+  for(var i=-1;i<14;i++){
+    var d=new Date(base);d.setDate(base.getDate()+i);
+    var iso=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    var el=document.createElement("div");
+    el.className="day-pill"+(iso===fechaSel?" sel":"");
+    el.innerHTML='<div class="dw">'+DIAS[d.getDay()]+'</div><div class="dn">'+d.getDate()+'</div>';
+    (function(iso){el.onclick=function(){fechaSel=iso;renderAgenda();};})(iso);
+    strip.appendChild(el);
+  }
+}
+function renderAgenda(){
+  renderDayStrip();updateHeader();
+  document.getElementById("agenda-sub").textContent=fechaBonita(fechaSel);
+  var lst=citas.filter(function(c){return c.fecha===fechaSel;}).sort(function(a,b){return a.hora<b.hora?-1:1;});
+  var box=document.getElementById("lista-citas");
+  if(!lst.length){box.innerHTML='<div class="empty"><span class="big">📅</span>No hay citas para este día.<br>Toca <b>+</b> para agendar una.</div>';return;}
+  box.innerHTML=lst.map(function(c){
+    var chips={pendiente:'<span class="chip chip-pend">Pendiente</span>',confirmada:'<span class="chip chip-conf">Confirmada</span>',atendida:'<span class="chip chip-aten">Atendida</span>',cancelada:'<span class="chip chip-canc">Cancelada</span>'};
+    var p=pacientes.find(function(x){return x.id===c.pacienteId;});
+    return '<div class="card"><div class="cita-line">'+
+      '<div class="cita-hora">'+esc(c.hora)+'</div>'+
+      '<div style="flex:1"><b>'+esc(nombrePac(c.pacienteId))+'</b><div class="meta">'+esc(c.motivo||"Consulta")+'</div><div style="margin-top:7px">'+chips[c.estado]+'</div></div>'+
+      '</div><div class="divider" style="margin:12px 0 10px"></div><div style="display:flex;gap:8px;flex-wrap:wrap">'+
+      (c.estado==="pendiente"?'<button class="btn-sm btn-outline" onclick="setEstado(\''+c.id+'\',\'confirmada\')">✔️ Confirmar</button>':'')+
+      (c.estado!=="atendida"&&c.estado!=="cancelada"?'<button class="btn-sm btn-outline" onclick="setEstado(\''+c.id+'\',\'atendida\')">✅ Atendida</button>':'')+
+      (p&&p.fono?'<button class="btn-sm btn-wa" onclick="waRecordatorio(\''+c.id+'\')">💬 Recordar</button>':'')+
+      (c.estado!=="cancelada"?'<button class="btn-sm btn-ghost" onclick="setEstado(\''+c.id+'\',\'cancelada\')">✖ Cancelar</button>':'<button class="btn-sm btn-red" onclick="borrarCita(\''+c.id+'\')">🗑️ Eliminar</button>')+
+      '</div></div>';
+  }).join("");
+}
+function abrirNuevaCita(){
+  if(!pacientes.length){toast("⚠️ Primero registra un paciente","var(--amber)");showPage("pacientes");return;}
+  var sel=document.getElementById("c-paciente");
+  sel.innerHTML=pacientes.slice().sort(function(a,b){return a.nombre.localeCompare(b.nombre);}).map(function(p){return '<option value="'+p.id+'">'+esc(p.nombre)+'</option>';}).join("");
+  document.getElementById("c-fecha").value=fechaSel;
+  document.getElementById("c-hora").value="09:00";
+  document.getElementById("c-motivo").value="";
+  openM("m-cita");
+}
+function guardarCita(){
+  var f=document.getElementById("c-fecha").value, h=document.getElementById("c-hora").value;
+  if(!f||!h){toast("⚠️ Fecha y hora son obligatorias","var(--amber)");return;}
+  citas.push({id:uid(),pacienteId:document.getElementById("c-paciente").value,fecha:f,hora:h,motivo:document.getElementById("c-motivo").value.trim(),estado:"pendiente"});
+  save();closeM("m-cita");fechaSel=f;renderAgenda();toast("📅 Cita guardada");
+}
+function setEstado(id,est){
+  var c=citas.find(function(x){return x.id===id;});if(!c)return;
+  c.estado=est;save();renderAgenda();
+}
+function borrarCita(id){
+  citas=citas.filter(function(x){return x.id!==id;});save();renderAgenda();toast("🗑️ Cita eliminada","var(--amber)");
+}
+function waRecordatorio(id){
+  var c=citas.find(function(x){return x.id===id;});if(!c)return;
+  var p=pacientes.find(function(x){return x.id===c.pacienteId;});
+  if(!p||!p.fono){toast("⚠️ El paciente no tiene celular registrado","var(--amber)");return;}
+  var msg="Hola "+p.nombre.split(" ")[0]+" 👋, le recordamos su cita en "+cfg.nombre+" el "+fechaBonita(c.fecha)+" a las "+c.hora+(c.motivo?" ("+c.motivo+")":"")+". ¡Le esperamos! 🦷";
+  window.open("https://wa.me/"+p.fono.replace(/\D/g,"")+"?text="+encodeURIComponent(msg),"_blank");
+}
+
+// ══════════ PACIENTES ══════════
+function renderPacientes(){
+  var q=(document.getElementById("buscar-pac").value||"").toLowerCase();
+  var lst=pacientes.filter(function(p){return p.nombre.toLowerCase().includes(q)||(p.cedula||"").includes(q);}).sort(function(a,b){return a.nombre.localeCompare(b.nombre);});
+  document.getElementById("pac-count").textContent=pacientes.length+" paciente"+(pacientes.length!==1?"s":"")+" registrado"+(pacientes.length!==1?"s":"");
+  var box=document.getElementById("lista-pacientes");
+  if(!lst.length){box.innerHTML='<div class="empty"><span class="big">🧑‍⚕️</span>'+(pacientes.length?"Sin resultados para la búsqueda.":"Aún no hay pacientes.<br>Toca <b>+</b> para registrar el primero.")+'</div>';return;}
+  box.innerHTML=lst.map(function(p){
+    var saldo=saldoPaciente(p.id);
+    return '<div class="card card-tap" onclick="abrirDetalle(\''+p.id+'\')"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px">'+
+    '<div><b>'+esc(p.nombre)+'</b><div class="meta">'+(p.cedula?"CI "+esc(p.cedula)+" · ":"")+(p.fono?"📱 "+esc(p.fono):"sin celular")+'</div></div>'+
+    (saldo>0?'<span class="chip chip-saldo">Debe '+fmt$(saldo)+'</span>':'')+
+    '</div></div>';
+  }).join("");
+}
+function abrirNuevoPaciente(){
+  editPacId=null;
+  document.getElementById("m-pac-title").textContent="Nuevo paciente";
+  ["p-nombre","p-cedula","p-nac","p-fono","p-alergias","p-antecedentes"].forEach(function(i){document.getElementById(i).value="";});
+  openM("m-pac");
+}
+function guardarPaciente(){
+  var nombre=document.getElementById("p-nombre").value.trim();
+  if(!nombre){toast("⚠️ El nombre es obligatorio","var(--amber)");return;}
+  var datos={nombre:nombre,cedula:document.getElementById("p-cedula").value.trim(),nac:document.getElementById("p-nac").value,fono:document.getElementById("p-fono").value.trim(),alergias:document.getElementById("p-alergias").value.trim(),antecedentes:document.getElementById("p-antecedentes").value.trim()};
+  if(editPacId){
+    var p=pacientes.find(function(x){return x.id===editPacId;});
+    Object.assign(p,datos);
+    closeM("m-pac");save();abrirDetalle(editPacId);toast("✏️ Paciente actualizado");
+  }else{
+    datos.id=uid();datos.dientes={};datos.evolucion=[];datos.recetas=[];
+    pacientes.push(datos);
+    closeM("m-pac");save();toast("🧑‍⚕️ Paciente registrado");
+  }
+  renderPacientes();
+}
+function editarPaciente(){
+  var p=pacientes.find(function(x){return x.id===pacSel;});if(!p)return;
+  editPacId=p.id;
+  document.getElementById("m-pac-title").textContent="Editar paciente";
+  document.getElementById("p-nombre").value=p.nombre;
+  document.getElementById("p-cedula").value=p.cedula||"";
+  document.getElementById("p-nac").value=p.nac||"";
+  document.getElementById("p-fono").value=p.fono||"";
+  document.getElementById("p-alergias").value=p.alergias||"";
+  document.getElementById("p-antecedentes").value=p.antecedentes||"";
+  closeM("m-det");openM("m-pac");
+}
+function borrarPaciente(){
+  if(!confirm("¿Eliminar este paciente con su historia, citas y tratamientos?"))return;
+  pacientes=pacientes.filter(function(x){return x.id!==pacSel;});
+  citas=citas.filter(function(x){return x.pacienteId!==pacSel;});
+  trats=trats.filter(function(x){return x.pacienteId!==pacSel;});
+  save();closeM("m-det");renderPacientes();toast("🗑️ Paciente eliminado","var(--amber)");
+}
+function edad(nac){
+  if(!nac)return null;
+  var hoy=new Date(),n=new Date(nac);
+  var e=hoy.getFullYear()-n.getFullYear();
+  if(hoy.getMonth()<n.getMonth()||(hoy.getMonth()===n.getMonth()&&hoy.getDate()<n.getDate()))e--;
+  return e;
+}
+
+// ══════════ DETALLE + ODONTOGRAMA ══════════
+var ESTADOS=["","sano","caries","rest","endo","corona","ausente"];
+var ESTADO_LBL={"":"Sin registro",sano:"Sano",caries:"Caries",rest:"Restaurado",endo:"Endodoncia",corona:"Corona",ausente:"Ausente"};
+var SUP=[18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28];
+var INF=[48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38];
+function abrirDetalle(id){
+  pacSel=id;
+  var p=pacientes.find(function(x){return x.id===id;});if(!p)return;
+  document.getElementById("d-nombre").textContent=p.nombre;
+  var e=edad(p.nac);
+  document.getElementById("d-datos").textContent=(p.cedula?"CI "+p.cedula+" · ":"")+(e!==null?e+" años · ":"")+(p.fono?"📱 "+p.fono:"sin celular");
+  document.getElementById("d-medico").innerHTML=(p.alergias?"⚠️ <b>Alergias:</b> "+esc(p.alergias):"Sin alergias registradas")+(p.antecedentes?"<br>🩺 "+esc(p.antecedentes):"");
+  document.getElementById("d-wa").style.display=p.fono?"block":"none";
+  showTab("odont");renderOdont();renderEvo();renderRecetas();renderTratPac();
+  openM("m-det");
+}
+function showTab(t){
+  ["odont","evo","receta","trat"].forEach(function(x){
+    document.getElementById("tab-"+x).classList.toggle("on",x===t);
+    document.getElementById("sub-"+x).classList.toggle("on",x===t);
+  });
+}
+function renderOdont(){
+  var p=pacientes.find(function(x){return x.id===pacSel;});if(!p)return;
+  p.dientes=p.dientes||{};
+  function fila(arr,contId){
+    var box=document.getElementById(contId);box.innerHTML="";
+    arr.forEach(function(num){
+      var st=p.dientes[num]||"";
+      var el=document.createElement("div");
+      el.className="tooth"+(st?" st-"+st:"");
+      el.textContent=num;
+      el.title=ESTADO_LBL[st];
+      el.onclick=function(){
+        var i=ESTADOS.indexOf(p.dientes[num]||"");
+        var nuevo=ESTADOS[(i+1)%ESTADOS.length];
+        if(nuevo)p.dientes[num]=nuevo;else delete p.dientes[num];
+        save();renderOdont();
+        toast("🦷 Diente "+num+": "+ESTADO_LBL[nuevo],"var(--surface2)");
+      };
+      box.appendChild(el);
+    });
+  }
+  fila(SUP,"arch-sup-d");fila(INF,"arch-inf-d");
+}
+function agregarEvo(){
+  var txt=document.getElementById("evo-txt").value.trim();
+  if(!txt){toast("⚠️ Escribe la nota primero","var(--amber)");return;}
+  var p=pacientes.find(function(x){return x.id===pacSel;});
+  p.evolucion=p.evolucion||[];
+  p.evolucion.unshift({f:hoyISO(),txt:txt});
+  document.getElementById("evo-txt").value="";
+  save();renderEvo();toast("📋 Nota agregada");
+}
+function renderEvo(){
+  var p=pacientes.find(function(x){return x.id===pacSel;});if(!p)return;
+  var lst=p.evolucion||[];
+  var box=document.getElementById("lista-evo");
+  if(!lst.length){box.innerHTML='<div class="empty" style="padding:24px">Sin notas de evolución todavía.</div>';return;}
+  box.innerHTML=lst.map(function(e){
+    return '<div class="evo-item"><div class="f">'+e.f+'</div><div>'+esc(e.txt)+'</div></div>';
+  }).join("");
+}
+function waPaciente(){
+  var p=pacientes.find(function(x){return x.id===pacSel;});
+  if(!p||!p.fono)return;
+  window.open("https://wa.me/"+p.fono.replace(/\D/g,""),"_blank");
+}
+
+// ══════════ RECETAS ══════════
+function guardarReceta(){
+  var meds=document.getElementById("rec-meds").value.trim();
+  var indic=document.getElementById("rec-indic").value.trim();
+  if(!meds&&!indic){toast("⚠️ Escribe la receta primero","var(--amber)");return;}
+  var p=pacientes.find(function(x){return x.id===pacSel;});
+  p.recetas=p.recetas||[];
+  p.recetas.unshift({id:uid(),f:hoyISO(),meds:meds,indic:indic});
+  document.getElementById("rec-meds").value="";document.getElementById("rec-indic").value="";
+  save();renderRecetas();toast("💊 Receta guardada");
+}
+function renderRecetas(){
+  var p=pacientes.find(function(x){return x.id===pacSel;});if(!p)return;
+  var lst=p.recetas||[];
+  var box=document.getElementById("lista-recetas");
+  if(!lst.length){box.innerHTML='<div class="empty" style="padding:24px">Sin recetas todavía.<br>Escribe una arriba y podrás enviarla por WhatsApp.</div>';return;}
+  box.innerHTML=lst.map(function(r){
+    return '<div class="card" style="background:var(--surface2)">'+
+      '<div class="meta">💊 Receta · '+r.f+'</div>'+
+      (r.meds?'<div style="margin-top:8px;white-space:pre-line;font-size:14px">'+esc(r.meds)+'</div>':'')+
+      (r.indic?'<div class="meta" style="margin-top:8px;white-space:pre-line">📝 '+esc(r.indic)+'</div>':'')+
+      '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">'+
+      (p.fono?'<button class="btn-sm btn-wa" onclick="waReceta(\''+r.id+'\')">💬 Enviar</button>':'')+
+      '<button class="btn-sm btn-ghost" onclick="imprimirReceta(\''+r.id+'\')">🖨️ Imprimir</button>'+
+      '<button class="btn-sm btn-red" onclick="borrarReceta(\''+r.id+'\')">🗑️</button>'+
+      '</div></div>';
+  }).join("");
+}
+function waReceta(id){
+  var p=pacientes.find(function(x){return x.id===pacSel;});if(!p||!p.fono)return;
+  var r=(p.recetas||[]).find(function(x){return x.id===id;});if(!r)return;
+  var msg="🦷 *"+cfg.nombre+"* — Receta\n"+
+    (cfg.doctor?cfg.doctor+"\n":"")+
+    "📅 "+fechaBonita(r.f)+"\n"+
+    "Paciente: "+p.nombre+"\n\n"+
+    (r.meds?"💊 *Medicación:*\n"+r.meds+"\n\n":"")+
+    (r.indic?"📝 *Indicaciones:*\n"+r.indic+"\n\n":"")+
+    "Cualquier duda escríbanos por este medio. ¡Pronta recuperación! 😊";
+  window.open("https://wa.me/"+p.fono.replace(/\D/g,"")+"?text="+encodeURIComponent(msg),"_blank");
+}
+function borrarReceta(id){
+  var p=pacientes.find(function(x){return x.id===pacSel;});if(!p)return;
+  if(!confirm("¿Eliminar esta receta?"))return;
+  p.recetas=(p.recetas||[]).filter(function(x){return x.id!==id;});
+  save();renderRecetas();toast("🗑️ Receta eliminada","var(--amber)");
+}
+
+// ══════════ TRATAMIENTOS Y PAGOS ══════════
+function saldoTrat(t){
+  var pagado=(t.abonos||[]).reduce(function(s,a){return s+a.monto;},0);
+  return t.costo-pagado;
+}
+function saldoPaciente(pid){
+  return trats.filter(function(t){return t.pacienteId===pid;}).reduce(function(s,t){return s+Math.max(0,saldoTrat(t));},0);
+}
+function guardarTrat(){
+  var desc=document.getElementById("t-desc").value.trim();
+  var costo=parseFloat(document.getElementById("t-costo").value)||0;
+  var abono=parseFloat(document.getElementById("t-abono").value)||0;
+  if(!desc||!costo){toast("⚠️ Descripción y costo son obligatorios","var(--amber)");return;}
+  var t={id:uid(),pacienteId:pacSel,desc:desc,costo:costo,fecha:hoyISO(),abonos:[]};
+  if(abono>0)t.abonos.push({f:hoyISO(),monto:abono});
+  trats.push(t);
+  document.getElementById("t-desc").value="";document.getElementById("t-costo").value="";document.getElementById("t-abono").value="";
+  save();closeM("m-trat");renderTratPac();toast("💵 Tratamiento creado");
+}
+function renderTratPac(){
+  var lst=trats.filter(function(t){return t.pacienteId===pacSel;}).sort(function(a,b){return a.fecha<b.fecha?1:-1;});
+  var box=document.getElementById("lista-trat-pac");
+  if(!lst.length){box.innerHTML='<div class="empty" style="padding:24px">Sin tratamientos registrados.</div>';return;}
+  box.innerHTML=lst.map(function(t){return cardTrat(t,true);}).join("");
+}
+function cardTrat(t,dentro){
+  var saldo=saldoTrat(t);
+  var p=pacientes.find(function(x){return x.id===t.pacienteId;});
+  var abonosHTML=(t.abonos||[]).map(function(a){return '<div class="pay-row"><span class="meta">'+a.f+'</span><span class="money" style="color:var(--green)">+'+fmt$(a.monto)+'</span></div>';}).join("");
+  return '<div class="card" style="background:var(--surface2)">'+
+    '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">'+
+    '<div><b>'+esc(t.desc)+'</b>'+(dentro?'':'<div class="meta">'+esc(nombrePac(t.pacienteId))+'</div>')+'<div class="meta">Inicio: '+t.fecha+' · Costo '+fmt$(t.costo)+'</div></div>'+
+    (saldo>0?'<span class="chip chip-saldo">Debe '+fmt$(saldo)+'</span>':'<span class="chip chip-pagado">Pagado ✔</span>')+
+    '</div>'+
+    (abonosHTML?'<div class="divider" style="margin:10px 0 4px"></div>'+abonosHTML:'')+
+    '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">'+
+    (saldo>0?'<button class="btn-sm" style="background:var(--teal-dark);color:#fff" onclick="abrirAbono(\''+t.id+'\')">➕ Abono</button>':'')+
+    (p&&p.fono?'<button class="btn-sm btn-wa" onclick="waTrat(\''+t.id+'\')">💬 Enviar</button>':'')+
+    '<button class="btn-sm btn-ghost" onclick="imprimirTrat(\''+t.id+'\')">🖨️ Imprimir</button>'+
+    '<button class="btn-sm btn-red" onclick="borrarTrat(\''+t.id+'\')">🗑️</button>'+
+    '</div></div>';
+}
+function waTrat(id){
+  var t=trats.find(function(x){return x.id===id;});if(!t)return;
+  var p=pacientes.find(function(x){return x.id===t.pacienteId;});if(!p||!p.fono)return;
+  var pagado=t.costo-saldoTrat(t);
+  var saldo=Math.max(0,saldoTrat(t));
+  var abonosTxt=(t.abonos||[]).map(function(a){return "  · "+a.f+": $"+a.monto.toFixed(2);}).join("\n");
+  var msg="🦷 *"+cfg.nombre+"* — Plan de tratamiento\n"+
+    "Paciente: "+p.nombre+"\n\n"+
+    "🔧 Tratamiento: "+t.desc+"\n"+
+    "💵 Costo total: "+fmt$(t.costo)+"\n"+
+    (abonosTxt?"✅ Abonos:\n"+abonosTxt+"\n":"")+
+    "📊 Pagado: "+fmt$(pagado)+"\n"+
+    (saldo>0?"⏳ Saldo pendiente: *"+fmt$(saldo)+"*":"🎉 *Tratamiento cancelado en su totalidad*")+
+    "\n\nGracias por su confianza."+(cfg.doctor?" "+cfg.doctor:"");
+  window.open("https://wa.me/"+p.fono.replace(/\D/g,"")+"?text="+encodeURIComponent(msg),"_blank");
+}
+function abrirAbono(id){
+  tratAbonoId=id;
+  var t=trats.find(function(x){return x.id===id;});if(!t)return;
+  document.getElementById("ab-info").innerHTML="<b>"+esc(t.desc)+"</b> · "+esc(nombrePac(t.pacienteId))+"<br>Saldo pendiente: <b style='color:var(--red)'>"+fmt$(saldoTrat(t))+"</b>";
+  document.getElementById("ab-monto").value="";
+  openM("m-abono");
+}
+function guardarAbono(){
+  var t=trats.find(function(x){return x.id===tratAbonoId;});if(!t)return;
+  var m=parseFloat(document.getElementById("ab-monto").value)||0;
+  if(m<=0){toast("⚠️ Ingresa un monto válido","var(--amber)");return;}
+  t.abonos.push({f:hoyISO(),monto:m});
+  save();closeM("m-abono");renderTratPac();renderPagos();renderPacientes();
+  var s=saldoTrat(t);
+  toast(s<=0?"🎉 Tratamiento pagado por completo":"💵 Abono registrado · saldo "+fmt$(s));
+}
+function borrarTrat(id){
+  if(!confirm("¿Eliminar este tratamiento con sus abonos?"))return;
+  trats=trats.filter(function(x){return x.id!==id;});
+  save();renderTratPac();renderPagos();renderPacientes();toast("🗑️ Tratamiento eliminado","var(--amber)");
+}
+function renderPagos(){
+  var cobrado=0,pendiente=0,activos=0;
+  trats.forEach(function(t){
+    var s=saldoTrat(t);
+    cobrado+=t.costo-s;
+    if(s>0){pendiente+=s;activos++;}
+  });
+  document.getElementById("tot-cobrado").textContent=fmt$(cobrado);
+  document.getElementById("tot-pendiente").textContent=fmt$(pendiente);
+  document.getElementById("tot-tratamientos").textContent=activos;
+  var lst=trats.filter(function(t){return saldoTrat(t)>0;}).sort(function(a,b){return saldoTrat(b)-saldoTrat(a);});
+  var box=document.getElementById("lista-pagos");
+  if(!lst.length){box.innerHTML='<div class="empty"><span class="big">🎉</span>No hay saldos pendientes.</div>';return;}
+  box.innerHTML=lst.map(function(t){return cardTrat(t,false);}).join("");
+}
+
+// ══════════ IMPRESIÓN (recetas y tratamientos) ══════════
+function membreteHTML(){
+  var linea=[cfg.reg?"Reg. Prof. "+esc(cfg.reg):"",esc(cfg.dir||""),cfg.fonoCl?"Tel. "+esc(cfg.fonoCl):""].filter(Boolean).join(" · ");
+  return '<div class="mem"><div class="mem-n">'+esc(cfg.nombre)+'</div>'+
+    (cfg.doctor?'<div class="mem-d">'+esc(cfg.doctor)+'</div>':'')+
+    (linea?'<div class="mem-i">'+linea+'</div>':'')+'</div>';
+}
+function filaPaciente(p,fecha){
+  var e=edad(p.nac);
+  return '<div class="fila"><span><b>Paciente:</b> '+esc(p.nombre)+'</span><span><b>Fecha:</b> '+fechaBonita(fecha)+'</span></div>'+
+    '<div class="fila"><span>'+(p.cedula?'<b>CI:</b> '+esc(p.cedula):'')+'</span><span>'+(e!==null?'<b>Edad:</b> '+e+' años':'')+'</span></div>';
+}
+function abrirImpresion(html){
+  var w=window.open("","_blank");
+  if(!w){toast("⚠️ Permite las ventanas emergentes para poder imprimir","var(--amber)");return;}
+  w.document.write('<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>'+esc(cfg.nombre)+'</title><style>'+
+    'body{font-family:Georgia,"Times New Roman",serif;color:#111;margin:0;padding:34px 42px;font-size:14px;line-height:1.55;background:#fff}'+
+    '.mem{text-align:center;border-bottom:2px solid #111;padding-bottom:12px;margin-bottom:14px}'+
+    '.mem-n{font-size:21px;font-weight:bold;letter-spacing:.5px}'+
+    '.mem-d{font-size:15px;margin-top:2px}'+
+    '.mem-i{font-size:11px;color:#444;margin-top:5px}'+
+    '.fila{display:flex;justify-content:space-between;gap:16px;font-size:13px;margin:3px 0}'+
+    '.tit{font-size:15px;font-weight:bold;margin:20px 0 10px;letter-spacing:2px;text-transform:uppercase}'+
+    '.cuerpo{white-space:pre-line;min-height:110px}'+
+    '.nota{font-size:12px;color:#444;white-space:pre-line}'+
+    'table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}'+
+    'td,th{border:1px solid #999;padding:6px 9px;text-align:left}th{background:#f0f0f0}'+
+    '.der{text-align:right}'+
+    '.firmas{margin-top:80px;display:flex;justify-content:space-around;gap:30px;text-align:center;font-size:12px}'+
+    '.firmas div{border-top:1px solid #111;padding-top:6px;min-width:190px}'+
+    '@media print{body{padding:12mm 14mm}}'+
+    '</style></head><body>'+html+'</body></html>');
+  w.document.close();
+  w.focus();
+  setTimeout(function(){w.print();},400);
+}
+function imprimirReceta(id){
+  var p=pacientes.find(function(x){return x.id===pacSel;});if(!p)return;
+  var r=(p.recetas||[]).find(function(x){return x.id===id;});if(!r)return;
+  var html=membreteHTML()+filaPaciente(p,r.f)+
+    '<div class="tit">℞ &nbsp;Receta</div>'+
+    (r.meds?'<div class="cuerpo">'+esc(r.meds)+'</div>':'')+
+    (r.indic?'<div class="tit" style="font-size:13px">Indicaciones</div><div class="nota">'+esc(r.indic)+'</div>':'')+
+    '<div class="firmas"><div>Firma y sello</div></div>';
+  abrirImpresion(html);
+}
+function imprimirTrat(id){
+  var t=trats.find(function(x){return x.id===id;});if(!t)return;
+  var p=pacientes.find(function(x){return x.id===t.pacienteId;});if(!p)return;
+  var pagado=t.costo-saldoTrat(t);
+  var saldo=Math.max(0,saldoTrat(t));
+  var filasAb=(t.abonos||[]).map(function(a){return '<tr><td>Abono</td><td>'+a.f+'</td><td class="der">$'+a.monto.toFixed(2)+'</td></tr>';}).join("");
+  var html=membreteHTML()+filaPaciente(p,hoyISO())+
+    '<div class="tit">Plan de tratamiento</div>'+
+    '<table><tr><th>Detalle</th><th>Fecha</th><th class="der">Valor</th></tr>'+
+    '<tr><td><b>'+esc(t.desc)+'</b></td><td>'+t.fecha+'</td><td class="der"><b>$'+t.costo.toFixed(2)+'</b></td></tr>'+
+    filasAb+
+    '<tr><td colspan="2" class="der"><b>Total pagado</b></td><td class="der">$'+pagado.toFixed(2)+'</td></tr>'+
+    '<tr><td colspan="2" class="der"><b>Saldo pendiente</b></td><td class="der"><b>$'+saldo.toFixed(2)+'</b></td></tr>'+
+    '</table>'+
+    '<div class="firmas"><div>Firma del paciente</div><div>Firma y sello</div></div>';
+  abrirImpresion(html);
+}
+
+// ══════════ AJUSTES ══════════
+function loadCfg(){
+  document.getElementById("cfg-nombre").value=cfg.nombre;
+  document.getElementById("cfg-doctor").value=cfg.doctor;
+  document.getElementById("cfg-reg").value=cfg.reg||"";
+  document.getElementById("cfg-dir").value=cfg.dir||"";
+  document.getElementById("cfg-fono-cl").value=cfg.fonoCl||"";
+  document.getElementById("cfg-pin").value=cfg.pin;
+}
+function guardarCfg(){
+  cfg.nombre=document.getElementById("cfg-nombre").value.trim()||"Clínica Dental";
+  cfg.doctor=document.getElementById("cfg-doctor").value.trim();
+  cfg.reg=document.getElementById("cfg-reg").value.trim();
+  cfg.dir=document.getElementById("cfg-dir").value.trim();
+  cfg.fonoCl=document.getElementById("cfg-fono-cl").value.trim();
+  var pin=document.getElementById("cfg-pin").value.trim();
+  if(/^\d{4}$/.test(pin))cfg.pin=pin;
+  else if(pin){toast("⚠️ El PIN debe ser de 4 dígitos","var(--amber)");return;}
+  save();updateHeader();toast("💾 Ajustes guardados");
+}
+function exportar(){
+  var data={pacientes:pacientes,citas:citas,trats:trats,cfg:cfg,v:3,fecha:new Date().toISOString()};
+  var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="respaldo-clinica-"+hoyISO()+".json";
+  a.click();
+  toast("⬇️ Respaldo descargado");
+}
+function importar(inp){
+  var f=inp.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{
+      var d=JSON.parse(r.result);
+      if(!d.pacientes||!d.citas)throw 0;
+      if(!confirm("Esto reemplazará los datos actuales por los del respaldo. ¿Continuar?"))return;
+      pacientes=d.pacientes;citas=d.citas;trats=d.trats||[];
+      cfg=Object.assign({nombre:"Clínica Dental",doctor:"",pin:"1234"},d.cfg||{});
+      save();updateHeader();renderAgenda();
+      toast("⬆️ Respaldo restaurado");
+    }catch(e){toast("⚠️ Archivo de respaldo no válido","var(--red)");}
+    inp.value="";
+  };
+  r.readAsText(f);
+}
+
+// ══════════ MODO DEMO ══════════
+// Abre la app con  ?demo  al final del link para cargar datos de ejemplo
+// (ej: https://tuusuario.github.io/clinica/?demo)
+var ES_DEMO = true; // demo siempre activo en este archivo
+// ── Control de la prueba ──
+var DEMO_DIAS = 10;                   // días de prueba antes de bloquearse
+var _ini = parseInt(localStorage.getItem("dc_demo_ini") || "0");
+if (!_ini) { _ini = Date.now(); localStorage.setItem("dc_demo_ini", _ini); }
+var DEMO_VENCIDA = (Date.now() - _ini) > DEMO_DIAS * 24 * 60 * 60 * 1000;
+var DEMO_DIAS_RESTAN = Math.max(0, DEMO_DIAS - Math.floor((Date.now() - _ini) / 86400000));
+// En la demo los datos se REINICIAN en cada apertura (nada se conserva)
+if (ES_DEMO && !DEMO_VENCIDA) {
+  var _hoy = hoyISO();
+  var _d = new Date(); _d.setDate(_d.getDate() + 1);
+  var _man = _d.getFullYear() + "-" + String(_d.getMonth() + 1).padStart(2, "0") + "-" + String(_d.getDate()).padStart(2, "0");
+  cfg = { nombre: "Clínica Demo", doctor: "Dra. Demostración", pin: "1234", reg: "MSP 00000", dir: "Av. Ejemplo y Calle Demo, Portoviejo", fonoCl: "0990 000 000" };
+  pacientes = [
+    { id: "demo1", nombre: "Carlos Zambrano", cedula: "1311223344", nac: "1988-04-12", fono: "593990000001",
+      alergias: "Penicilina", antecedentes: "Hipertensión controlada",
+      dientes: { 16: "caries", 26: "rest", 36: "endo", 11: "sano", 21: "sano", 46: "corona", 18: "ausente" },
+      evolucion: [
+        { f: _hoy, txt: "Se realiza restauración con resina en pieza 26. Paciente tolera bien el procedimiento." },
+        { f: "2026-06-28", txt: "Primera consulta. Se diagnostica caries en 16 y se planifica tratamiento." }
+      ],
+      recetas: [ { id: "demoR1", f: _hoy, meds: "Ibuprofeno 400mg — 1 tableta cada 8 horas por 3 días", indic: "Dieta blanda por 24 horas. No masticar del lado derecho hoy." } ] },
+    { id: "demo2", nombre: "María Fernanda Loor", cedula: "1355667788", nac: "1995-09-30", fono: "593990000002",
+      alergias: "", antecedentes: "",
+      dientes: { 13: "sano", 23: "sano", 14: "caries", 24: "caries" },
+      evolucion: [ { f: "2026-07-05", txt: "Control de ortodoncia. Se ajusta arco superior. Buena higiene." } ],
+      recetas: [] },
+    { id: "demo3", nombre: "Pedro Alcívar", cedula: "1309876543", nac: "1972-01-15", fono: "593990000003",
+      alergias: "Ninguna", antecedentes: "Diabetes tipo 2",
+      dientes: { 37: "ausente", 47: "ausente", 17: "corona", 27: "rest" },
+      evolucion: [], recetas: [] }
+  ];
+  citas = [
+    { id: "demoC1", pacienteId: "demo1", fecha: _hoy, hora: "09:30", motivo: "Control de restauración", estado: "confirmada" },
+    { id: "demoC2", pacienteId: "demo2", fecha: _hoy, hora: "11:00", motivo: "Ajuste de ortodoncia", estado: "pendiente" },
+    { id: "demoC3", pacienteId: "demo3", fecha: _man, hora: "15:00", motivo: "Valoración para prótesis", estado: "pendiente" }
+  ];
+  trats = [
+    { id: "demoT1", pacienteId: "demo1", desc: "Restauración resina pieza 26", costo: 45, fecha: "2026-06-28",
+      abonos: [ { f: "2026-06-28", monto: 20 }, { f: _hoy, monto: 25 } ] },
+    { id: "demoT2", pacienteId: "demo2", desc: "Ortodoncia autoligado (plan completo)", costo: 1200, fecha: "2026-03-10",
+      abonos: [ { f: "2026-03-10", monto: 300 }, { f: "2026-05-12", monto: 150 }, { f: "2026-07-05", monto: 150 } ] },
+    { id: "demoT3", pacienteId: "demo3", desc: "Prótesis parcial removible inferior", costo: 380, fecha: _hoy, abonos: [] }
+  ];
+  save();
+  localStorage.setItem("dc_open", "1"); // en demo entra directo, sin PIN
+}
+
+// ══════════ INIT ══════════
+updateHeader();
+if (ES_DEMO && !DEMO_VENCIDA) {
+  var badge = document.createElement("div");
+  badge.textContent = "MODO DEMO · " + DEMO_DIAS_RESTAN + " día" + (DEMO_DIAS_RESTAN !== 1 ? "s" : "") + " de prueba · los datos se reinician al recargar";
+  badge.style.cssText = "position:fixed;top:0;left:0;right:0;background:var(--amber);color:#3a2c00;font-size:11px;font-weight:700;text-align:center;padding:3px;z-index:300;letter-spacing:.5px";
+  document.body.appendChild(badge);
+  document.querySelector("header").style.top = "19px";
+}
+if (ES_DEMO && DEMO_VENCIDA) {
+  document.body.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px">' +
+    '<div style="font-size:60px;margin-bottom:16px">🦷</div>' +
+    '<h1 style="font-size:22px;margin-bottom:10px">Tu período de prueba terminó</h1>' +
+    '<p style="color:var(--muted);max-width:340px;margin-bottom:24px">Esperamos que la aplicación te haya gustado. Adquiere la versión completa personalizada con el nombre y logo de tu consultorio, sin límite de tiempo y sin mensualidades.</p>' +
+    '<p style="font-weight:700;color:var(--ink,#222)">Contacta a tu vendedor para adquirirla.</p>' +
+    '</div>';
+} else {
+  renderPin();
+  if(localStorage.getItem("dc_open")==="1"){desbloquear();}
+}
+
+// Registro del service worker (modo app / funciona sin internet)
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").catch(function(){});
+}
+</script>
+</body>
+</html>
