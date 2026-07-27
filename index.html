@@ -191,6 +191,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:#101a28;border-top:1px sol
 <div class="page active" id="page-agenda">
   <h2 class="page-title">Agenda de citas</h2>
   <p class="page-sub" id="agenda-sub"></p>
+  <div id="avisos-citas"></div>
   <div class="day-strip" id="day-strip"></div>
   <div id="lista-citas"></div>
 </div>
@@ -229,6 +230,16 @@ nav{position:fixed;bottom:0;left:0;right:0;background:#101a28;border-top:1px sol
     <input type="text" id="cfg-dir" placeholder="Cdla. 1ero de Mayo, Portoviejo">
     <label>Teléfono del consultorio (para el membrete)</label>
     <input type="tel" id="cfg-fono-cl" placeholder="0994 342 422">
+    <label>WhatsApp del doctor/a (con código país, sin +)</label>
+    <input type="tel" id="cfg-fono-dr" placeholder="593991234567">
+    <label>Recordatorios de citas: anticipación</label>
+    <select id="cfg-aviso-horas">
+      <option value="1">1 hora antes</option>
+      <option value="2">2 horas antes</option>
+      <option value="3">3 horas antes</option>
+      <option value="6">6 horas antes</option>
+      <option value="24">1 día antes</option>
+    </select>
     <label>PIN de acceso (4 dígitos)</label>
     <input type="tel" id="cfg-pin" maxlength="4" inputmode="numeric" placeholder="1234">
     <button class="btn" onclick="guardarCfg()">💾 Guardar</button>
@@ -388,7 +399,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:#101a28;border-top:1px sol
 var pacientes=JSON.parse(localStorage.getItem("dc_pacientes")||"[]");
 var citas=JSON.parse(localStorage.getItem("dc_citas")||"[]");
 var trats=JSON.parse(localStorage.getItem("dc_trats")||"[]");
-var cfg=Object.assign({nombre:"Clínica Dental",doctor:"",pin:"1234",reg:"",dir:"",fonoCl:""},JSON.parse(localStorage.getItem("dc_cfg")||"{}"));
+var cfg=Object.assign({nombre:"Clínica Dental",doctor:"",pin:"1234",reg:"",dir:"",fonoCl:"",fonoDr:"",avisoHoras:3},JSON.parse(localStorage.getItem("dc_cfg")||"{}"));
 var fechaSel=hoyISO();
 var pacSel=null, editPacId=null, tratAbonoId=null, pinBuf="";
 
@@ -444,6 +455,8 @@ function desbloquear(){
   document.getElementById("navbar").style.display="flex";
   updateHeader();showPage("agenda");
   avisoRespaldo();
+  pedirPermisoNotif();
+  chequearRecordatorios();
 }
 function bloquear(){
   localStorage.removeItem("dc_open");
@@ -512,10 +525,12 @@ function renderAgenda(){
       '</div><div class="divider" style="margin:12px 0 10px"></div><div style="display:flex;gap:8px;flex-wrap:wrap">'+
       (c.estado==="pendiente"?'<button class="btn-sm btn-outline" onclick="setEstado(\''+c.id+'\',\'confirmada\')">✔️ Confirmar</button>':'')+
       (c.estado!=="atendida"&&c.estado!=="cancelada"?'<button class="btn-sm btn-outline" onclick="setEstado(\''+c.id+'\',\'atendida\')">✅ Atendida</button>':'')+
-      (p&&p.fono?'<button class="btn-sm btn-wa" onclick="waRecordatorio(\''+c.id+'\')">💬 Recordar</button>':'')+
+      (p&&p.fono?'<button class="btn-sm btn-wa" onclick="waRecordatorio(\''+c.id+'\')">💬 Paciente</button>':'')+
+      (cfg.fonoDr?'<button class="btn-sm btn-wa" onclick="waDoctor(\''+c.id+'\')">💬 Dr.</button>':'')+
       (c.estado!=="cancelada"?'<button class="btn-sm btn-ghost" onclick="setEstado(\''+c.id+'\',\'cancelada\')">✖ Cancelar</button>':'<button class="btn-sm btn-red" onclick="borrarCita(\''+c.id+'\')">🗑️ Eliminar</button>')+
       '</div></div>';
   }).join("");
+  if(typeof chequearRecordatorios==="function")chequearRecordatorios();
 }
 function abrirNuevaCita(){
   if(!pacientes.length){toast("⚠️ Primero registra un paciente","var(--amber)");showPage("pacientes");return;}
@@ -545,6 +560,64 @@ function waRecordatorio(id){
   if(!p||!p.fono){toast("⚠️ El paciente no tiene celular registrado","var(--amber)");return;}
   var msg="Hola "+p.nombre.split(" ")[0]+" 👋, le recordamos su cita en "+cfg.nombre+" el "+fechaBonita(c.fecha)+" a las "+c.hora+(c.motivo?" ("+c.motivo+")":"")+". ¡Le esperamos! 🦷";
   window.open("https://wa.me/"+p.fono.replace(/\D/g,"")+"?text="+encodeURIComponent(msg),"_blank");
+}
+function waDoctor(id){
+  var c=citas.find(function(x){return x.id===id;});if(!c)return;
+  if(!cfg.fonoDr){toast("⚠️ Registra el WhatsApp del doctor en Ajustes","var(--amber)");showPage("ajustes");return;}
+  var msg="🦷 Recordatorio "+cfg.nombre+": cita con "+nombrePac(c.pacienteId)+" el "+fechaBonita(c.fecha)+" a las "+c.hora+(c.motivo?" ("+c.motivo+")":"")+".";
+  window.open("https://wa.me/"+cfg.fonoDr.replace(/\D/g,"")+"?text="+encodeURIComponent(msg),"_blank");
+}
+
+// ══════════ RECORDATORIOS AUTOMÁTICOS ══════════
+function pedirPermisoNotif(){
+  if("Notification" in window && Notification.permission==="default"){
+    Notification.requestPermission();
+  }
+}
+function notificar(titulo,cuerpo,tag){
+  if(!("Notification" in window)||Notification.permission!=="granted")return;
+  var opts={body:cuerpo,icon:"icon-192.png",badge:"icon-192.png",tag:tag};
+  if("serviceWorker" in navigator){
+    navigator.serviceWorker.getRegistration().then(function(reg){
+      if(reg&&reg.showNotification){reg.showNotification(titulo,opts);}
+      else{try{new Notification(titulo,opts);}catch(e){}}
+    }).catch(function(){try{new Notification(titulo,opts);}catch(e){}});
+  }else{try{new Notification(titulo,opts);}catch(e){}}
+}
+function citasProximas(){
+  var ahora=new Date(), lim=(cfg.avisoHoras||3)*3600000;
+  return citas.filter(function(c){
+    if(c.estado==="cancelada"||c.estado==="atendida")return false;
+    var t=new Date(c.fecha+"T"+c.hora);
+    var dif=t-ahora;
+    return dif>0&&dif<=lim;
+  }).sort(function(a,b){return (a.fecha+a.hora)<(b.fecha+b.hora)?-1:1;});
+}
+function chequearRecordatorios(){
+  var prox=citasProximas(), cambio=false;
+  prox.forEach(function(c){
+    if(c.avisado)return;
+    c.avisado=true;cambio=true;
+    var p=pacientes.find(function(x){return x.id===c.pacienteId;});
+    notificar("🦷 Próxima cita: "+c.hora,
+      nombrePac(c.pacienteId)+(c.motivo?" · "+c.motivo:"")+(p&&p.fono?" — abre la app para enviar el WhatsApp":""),
+      "cita-"+c.id);
+  });
+  if(cambio)save();
+  renderAvisos(prox);
+}
+function renderAvisos(prox){
+  var box=document.getElementById("avisos-citas");if(!box)return;
+  if(!prox.length){box.innerHTML="";return;}
+  box.innerHTML=prox.map(function(c){
+    var p=pacientes.find(function(x){return x.id===c.pacienteId;});
+    return '<div class="card" style="border:1px solid var(--amber);background:#3d3417">'+
+      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
+      '<span style="flex:1;min-width:150px;color:var(--amber);font-size:13px">⏰ <b>'+esc(c.hora)+'</b> · '+esc(nombrePac(c.pacienteId))+(c.motivo?' — '+esc(c.motivo):'')+'</span>'+
+      (p&&p.fono?'<button class="btn-sm btn-wa" onclick="waRecordatorio(\''+c.id+'\')">💬 Paciente</button>':'')+
+      (cfg.fonoDr?'<button class="btn-sm btn-wa" onclick="waDoctor(\''+c.id+'\')">💬 Dr.</button>':'')+
+      '</div></div>';
+  }).join("");
 }
 
 // ══════════ PACIENTES ══════════
@@ -892,6 +965,8 @@ function loadCfg(){
   document.getElementById("cfg-reg").value=cfg.reg||"";
   document.getElementById("cfg-dir").value=cfg.dir||"";
   document.getElementById("cfg-fono-cl").value=cfg.fonoCl||"";
+  document.getElementById("cfg-fono-dr").value=cfg.fonoDr||"";
+  document.getElementById("cfg-aviso-horas").value=String(cfg.avisoHoras||3);
   document.getElementById("cfg-pin").value=cfg.pin;
   actualizarInfoRespaldo();
 }
@@ -901,6 +976,8 @@ function guardarCfg(){
   cfg.reg=document.getElementById("cfg-reg").value.trim();
   cfg.dir=document.getElementById("cfg-dir").value.trim();
   cfg.fonoCl=document.getElementById("cfg-fono-cl").value.trim();
+  cfg.fonoDr=document.getElementById("cfg-fono-dr").value.trim();
+  cfg.avisoHoras=parseInt(document.getElementById("cfg-aviso-horas").value)||3;
   var pin=document.getElementById("cfg-pin").value.trim();
   if(/^\d{4}$/.test(pin))cfg.pin=pin;
   else if(pin){toast("⚠️ El PIN debe ser de 4 dígitos","var(--amber)");return;}
@@ -1038,6 +1115,11 @@ if(localStorage.getItem("dc_open")==="1"){desbloquear();}
 if("serviceWorker" in navigator){
   navigator.serviceWorker.register("sw.js").catch(function(){});
 }
+
+// Revisa cada minuto si hay citas próximas para avisar
+setInterval(function(){
+  if(localStorage.getItem("dc_open")==="1")chequearRecordatorios();
+},60000);
 </script>
 </body>
 </html>

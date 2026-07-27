@@ -1,5 +1,16 @@
 // Service worker — permite que la app funcione sin internet
-var CACHE = "clinica-dental-v1";
+var CACHE = "clinica-dental-v2";
+
+// Al tocar una notificación se abre (o enfoca) la app
+self.addEventListener("notificationclick", function (e) {
+  e.notification.close();
+  e.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (cs) {
+      if (cs.length) return cs[0].focus();
+      return clients.openWindow("./");
+    })
+  );
+});
 var FILES = [
   "./",
   "./index.html",
