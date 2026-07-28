@@ -216,6 +216,23 @@ nav{position:fixed;bottom:0;left:0;right:0;background:#101a28;border-top:1px sol
   <div id="lista-pagos"></div>
 </div>
 
+<div class="page" id="page-stats">
+  <h2 class="page-title">Estadísticas</h2>
+  <p class="page-sub" id="stats-sub">Resumen del mes</p>
+  <div class="row">
+    <div class="card" style="text-align:center"><div class="money" style="font-size:19px;color:var(--green)" id="st-ingreso-mes">$0</div><div class="meta">Ingresos del mes</div></div>
+    <div class="card" style="text-align:center"><div class="money" style="font-size:19px" id="st-citas-mes">0</div><div class="meta">Citas del mes</div></div>
+  </div>
+  <div class="row">
+    <div class="card" style="text-align:center"><div class="money" style="font-size:19px;color:var(--green)" id="st-atendidas">0</div><div class="meta">Atendidas</div></div>
+    <div class="card" style="text-align:center"><div class="money" style="font-size:19px;color:var(--red)" id="st-canceladas">0</div><div class="meta">Canceladas</div></div>
+  </div>
+  <div class="card">
+    <h3 style="font-size:15px;margin-bottom:8px">Tratamientos más frecuentes</h3>
+    <div id="st-top-trat"></div>
+  </div>
+</div>
+
 <div class="page" id="page-ajustes">
   <h2 class="page-title">Ajustes</h2>
   <p class="page-sub">Datos de la clínica y respaldo</p>
@@ -245,6 +262,12 @@ nav{position:fixed;bottom:0;left:0;right:0;background:#101a28;border-top:1px sol
     <button class="btn" onclick="guardarCfg()">💾 Guardar</button>
   </div>
   <div class="card">
+    <h3 style="font-size:15px;margin-bottom:4px">Tratamientos frecuentes</h3>
+    <p class="meta" style="margin-bottom:12px">Uno por línea, formato "Descripción|Costo". Aparecerán como botones rápidos al crear un tratamiento.</p>
+    <textarea id="cfg-catalogo" rows="6" placeholder="Limpieza dental|30&#10;Resina simple|35&#10;Extracción simple|25"></textarea>
+    <button class="btn" onclick="guardarCfg()">💾 Guardar</button>
+  </div>
+  <div class="card">
     <h3 style="font-size:15px;margin-bottom:4px">Respaldo de información</h3>
     <p class="meta" style="margin-bottom:12px">Los datos se guardan solo en este dispositivo. Exporta un respaldo cada cierto tiempo.</p>
     <div class="row">
@@ -266,6 +289,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:#101a28;border-top:1px sol
   <button class="nav-btn active" id="nav-agenda" onclick="showPage('agenda')"><span class="ico">📅</span>Agenda</button>
   <button class="nav-btn" id="nav-pacientes" onclick="showPage('pacientes')"><span class="ico">🧑‍⚕️</span>Pacientes</button>
   <button class="nav-btn" id="nav-pagos" onclick="showPage('pagos')"><span class="ico">💵</span>Pagos</button>
+  <button class="nav-btn" id="nav-stats" onclick="showPage('stats')"><span class="ico">📊</span>Stats</button>
   <button class="nav-btn" id="nav-ajustes" onclick="showPage('ajustes')"><span class="ico">⚙️</span>Ajustes</button>
 </nav>
 </div>
@@ -361,7 +385,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:#101a28;border-top:1px sol
     </div>
 
     <div class="subtab" id="sub-trat">
-      <button class="btn" style="margin-top:4px" onclick="openM('m-trat')">➕ Nuevo tratamiento</button>
+      <button class="btn" style="margin-top:4px" onclick="abrirNuevoTrat()">➕ Nuevo tratamiento</button>
       <div id="lista-trat-pac" style="margin-top:14px"></div>
     </div>
   </div>
@@ -371,6 +395,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:#101a28;border-top:1px sol
 <div class="modal" id="m-trat">
   <div class="modal-box">
     <div class="modal-head"><h3>Nuevo tratamiento</h3><button class="modal-x" onclick="closeM('m-trat')">✕</button></div>
+    <div id="trat-chips" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px"></div>
     <label>Descripción</label>
     <input type="text" id="t-desc" placeholder="Ortodoncia, corona 26, limpieza...">
     <div class="row">
@@ -399,7 +424,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:#101a28;border-top:1px sol
 var pacientes=JSON.parse(localStorage.getItem("dc_pacientes")||"[]");
 var citas=JSON.parse(localStorage.getItem("dc_citas")||"[]");
 var trats=JSON.parse(localStorage.getItem("dc_trats")||"[]");
-var cfg=Object.assign({nombre:"Clínica Dental",doctor:"",pin:"1234",reg:"",dir:"",fonoCl:"",fonoDr:"",avisoHoras:3},JSON.parse(localStorage.getItem("dc_cfg")||"{}"));
+var cfg=Object.assign({nombre:"Clínica Dental",doctor:"",pin:"1234",reg:"",dir:"",fonoCl:"",fonoDr:"",avisoHoras:3,catalogoTrat:"Limpieza dental|30\nResina simple|35\nExtracción simple|25\nEndodoncia|150\nCorona|250\nBlanqueamiento|80"},JSON.parse(localStorage.getItem("dc_cfg")||"{}"));
 var fechaSel=hoyISO();
 var pacSel=null, editPacId=null, tratAbonoId=null, pinBuf="";
 
@@ -475,6 +500,7 @@ function showPage(p){
   if(p==="agenda")renderAgenda();
   if(p==="pacientes")renderPacientes();
   if(p==="pagos")renderPagos();
+  if(p==="stats")renderStats();
   if(p==="ajustes")loadCfg();
 }
 function fabAction(){
@@ -544,6 +570,8 @@ function abrirNuevaCita(){
 function guardarCita(){
   var f=document.getElementById("c-fecha").value, h=document.getElementById("c-hora").value;
   if(!f||!h){toast("⚠️ Fecha y hora son obligatorias","var(--amber)");return;}
+  var choque=citas.some(function(c){return c.fecha===f&&c.hora===h&&c.estado!=="cancelada";});
+  if(choque&&!confirm("⚠️ Ya hay otra cita agendada a las "+h+" ese día.\n¿Agendar de todas formas?"))return;
   citas.push({id:uid(),pacienteId:document.getElementById("c-paciente").value,fecha:f,hora:h,motivo:document.getElementById("c-motivo").value.trim(),estado:"pendiente"});
   save();closeM("m-cita");fechaSel=f;renderAgenda();toast("📅 Cita guardada");
 }
@@ -807,6 +835,31 @@ function saldoTrat(t){
 function saldoPaciente(pid){
   return trats.filter(function(t){return t.pacienteId===pid;}).reduce(function(s,t){return s+Math.max(0,saldoTrat(t));},0);
 }
+function catalogoTratArr(){
+  return (cfg.catalogoTrat||"").split("\n").map(function(l){return l.trim();}).filter(Boolean).map(function(l){
+    var p=l.split("|");return {desc:(p[0]||"").trim(),costo:(p[1]||"").trim()};
+  }).filter(function(it){return it.desc;});
+}
+function renderChipsTrat(){
+  var box=document.getElementById("trat-chips");if(!box)return;
+  var items=catalogoTratArr();
+  if(!items.length){box.innerHTML="";return;}
+  box.innerHTML=items.map(function(it,i){
+    return '<button type="button" class="btn-sm btn-outline" style="margin:0" onclick="usarPlantillaTrat('+i+')">'+esc(it.desc)+(it.costo?' · $'+esc(it.costo):'')+'</button>';
+  }).join("");
+}
+function usarPlantillaTrat(i){
+  var it=catalogoTratArr()[i];if(!it)return;
+  document.getElementById("t-desc").value=it.desc;
+  if(it.costo)document.getElementById("t-costo").value=it.costo;
+}
+function abrirNuevoTrat(){
+  document.getElementById("t-desc").value="";
+  document.getElementById("t-costo").value="";
+  document.getElementById("t-abono").value="";
+  renderChipsTrat();
+  openM("m-trat");
+}
 function guardarTrat(){
   var desc=document.getElementById("t-desc").value.trim();
   var costo=parseFloat(document.getElementById("t-costo").value)||0;
@@ -894,6 +947,41 @@ function renderPagos(){
   box.innerHTML=lst.map(function(t){return cardTrat(t,false);}).join("");
 }
 
+// ══════════ ESTADÍSTICAS ══════════
+function renderStats(){
+  var hoy=new Date();
+  var ym=hoy.getFullYear()+"-"+String(hoy.getMonth()+1).padStart(2,"0");
+  document.getElementById("stats-sub").textContent=MESES[hoy.getMonth()].charAt(0).toUpperCase()+MESES[hoy.getMonth()].slice(1)+" "+hoy.getFullYear();
+
+  var ingresoMes=0;
+  trats.forEach(function(t){
+    (t.abonos||[]).forEach(function(a){
+      if((a.f||"").slice(0,7)===ym)ingresoMes+=a.monto;
+    });
+  });
+  var citasMes=citas.filter(function(c){return (c.fecha||"").slice(0,7)===ym;});
+  var atendidas=citasMes.filter(function(c){return c.estado==="atendida";}).length;
+  var canceladas=citasMes.filter(function(c){return c.estado==="cancelada";}).length;
+
+  document.getElementById("st-ingreso-mes").textContent=fmt$(ingresoMes);
+  document.getElementById("st-citas-mes").textContent=citasMes.length;
+  document.getElementById("st-atendidas").textContent=atendidas;
+  document.getElementById("st-canceladas").textContent=canceladas;
+
+  var conteo={};
+  trats.forEach(function(t){
+    var k=t.desc.trim().toLowerCase();
+    conteo[k]=conteo[k]||{desc:t.desc,n:0,total:0};
+    conteo[k].n++;conteo[k].total+=t.costo;
+  });
+  var top=Object.keys(conteo).map(function(k){return conteo[k];}).sort(function(a,b){return b.n-a.n;}).slice(0,6);
+  var box=document.getElementById("st-top-trat");
+  if(!top.length){box.innerHTML='<div class="empty" style="padding:24px">Aún no hay tratamientos registrados.</div>';return;}
+  box.innerHTML=top.map(function(it){
+    return '<div class="pay-row"><span>'+esc(it.desc)+' <span class="meta">×'+it.n+'</span></span><span class="money">'+fmt$(it.total)+'</span></div>';
+  }).join("");
+}
+
 // ══════════ IMPRESIÓN (recetas y tratamientos) ══════════
 function membreteHTML(){
   var linea=[cfg.reg?"Reg. Prof. "+esc(cfg.reg):"",esc(cfg.dir||""),cfg.fonoCl?"Tel. "+esc(cfg.fonoCl):""].filter(Boolean).join(" · ");
@@ -968,6 +1056,7 @@ function loadCfg(){
   document.getElementById("cfg-fono-dr").value=cfg.fonoDr||"";
   document.getElementById("cfg-aviso-horas").value=String(cfg.avisoHoras||3);
   document.getElementById("cfg-pin").value=cfg.pin;
+  document.getElementById("cfg-catalogo").value=cfg.catalogoTrat||"";
   actualizarInfoRespaldo();
 }
 function guardarCfg(){
@@ -978,6 +1067,7 @@ function guardarCfg(){
   cfg.fonoCl=document.getElementById("cfg-fono-cl").value.trim();
   cfg.fonoDr=document.getElementById("cfg-fono-dr").value.trim();
   cfg.avisoHoras=parseInt(document.getElementById("cfg-aviso-horas").value)||3;
+  cfg.catalogoTrat=document.getElementById("cfg-catalogo").value;
   var pin=document.getElementById("cfg-pin").value.trim();
   if(/^\d{4}$/.test(pin))cfg.pin=pin;
   else if(pin){toast("⚠️ El PIN debe ser de 4 dígitos","var(--amber)");return;}
